@@ -1,0 +1,16 @@
+---
+title: "Project 1"
+author: "Emily El Mouaquite"
+date: "2026-02-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Approach
+For this project, I will use the stringr and dplyr libraries to generate a .CSV file from the information in tournamentinfo.txt, which can be accessed here: https://raw.githubusercontent.com/emilye5/607-project1/refs/heads/main/tournamentinfo.txt.
+After structuring the data in a new data frame, I will be able to calculate the average pre chess rating of the player's opponents. Then, I will be able to use this data frame to create the .CSV file required of this project. 
+To conclude, I will verify my data by calculating the average ratings of the opponents of a player that played all 7 games, and one that played less. By comparing my hand calculations to my code results, I will be able to make sure that I executed this project properly. 
+I would also like to create some sort of visualization (most likely a scatter plot) to assess the relationship between a player's pre rating and their total number of points. 
