@@ -1,7 +1,7 @@
 ---
 title: "Project 1"
 author: "Emily El Mouaquite"
-date: "2026-02-19"
+date: "2026-02-22"
 output: html_document
 ---
 
@@ -14,3 +14,99 @@ For this project, I will use the stringr and dplyr libraries to generate a .CSV 
 After structuring the data in a new data frame, I will be able to calculate the average pre chess rating of the player's opponents. Then, I will be able to use this data frame to create the .CSV file required of this project. 
 To conclude, I will verify my data by calculating the average ratings of the opponents of a player that played all 7 games, and one that played less. By comparing my hand calculations to my code results, I will be able to make sure that I executed this project properly. 
 I would also like to create some sort of visualization (most likely a scatter plot) to assess the relationship between a player's pre rating and their total number of points. 
+
+## Code Base
+### Introduction
+Dplyr, stringr, and readr libraries are needed to manipulate the data, extract
+patterns in the text file information, and import the file. These are necessary in the trasformation of the data into a usable .CSV file. 
+```{r}
+#load libraries
+library(dplyr)
+library(stringr)
+library(readr)
+#read tournamentinfo.txt
+url <- "https://raw.githubusercontent.com/emilye5/607-project1/refs/heads/main/tournamentinfo.txt"
+df <- readLines(url)
+#view the current structure of the data
+head(df)
+```
+### Body 
+Clean the data, remove the header and empty lines. 
+```{r}
+#remove the header & separating lines containing dashes
+df <- df[!str_detect(df, "Pair|Num|---")]
+#remove blank lines
+df <- df[df != ""]
+#view the current structure of the data
+head(df)
+```
+We can see that every two lines accounts for the data for one player.
+```{r}
+#split every two rows into one player
+players <- length(df) / 2
+```
+After doing this, the information for the player's name, state, total number of points, pre-rating, and opponents can be populated. 
+```{r}
+#create empty variables
+name <- c()
+state <- c()
+total_points <- c()
+pre_rating <- c()
+opponents <- list()
+#loop through players and populate variables
+for (i in 1:players) {
+  line1 <- df[(2*i)-1]
+  line2 <- df[2*i]
+  #name
+  name <- c(name, str_trim(substr(line1, 8, 40)))
+  #total points
+  total_points <- c(total_points, as.numeric(str_trim(substr(line1,42, 46))))
+  #state
+  state <- c(state, substr(str_trim(line2), 1, 2))
+  #pre rating
+  pre_rating <- c(pre_rating, as.numeric(substr(line2, 23, 26)))
+  #opponents
+  line_1_numbers <- str_extract_all(line1, "\\d+")[[1]]
+  opps <- line_1_numbers[4:length(line_1_numbers)]
+  opponents[[i]] <- as.numeric(opps)
+}
+#average opponent rating
+avg_opps_rating <- c()
+for (i in 1:players) {
+  opps_ids <- opponents[[i]] 
+  opps_ratings <- pre_rating[opps_ids]
+  avg <- mean(opps_ratings)
+  avg_opps_rating <- c(avg_opps_rating, avg)
+}
+```
+With all of the necessary variables populated, the data frame can be created. 
+```{r}
+tournament_info <- data.frame(
+  name = name,
+  state = state,
+  total_points = total_points,
+  pre_rating = pre_rating,
+  avg_opps_rating = avg_opps_rating
+)
+```
+Export to .CSV file:
+```{r}
+write_csv(tournament_info, "tournament_info.csv")
+```
+
+### Conclusion
+To verify my work, I have hand calculated the average opponent ratings for player 1 (Gary Hua) and player 2 (Dakshesh Daruri). Gary Hua's average opponent rating is about 1605, while Dakshesh Daruri's is about 1469. 
+```{r}
+print(avg_opps_rating[1])
+print(avg_opps_rating[2])
+```
+Another way to extend this work might be to create a plot that is reprsentative of some of the data. Below I have created a scatter plot that assesses the relationship between a player's pre rating and their total number of points:
+```{r}
+library(ggplot2)
+ggplot(tournament_info, aes(x = pre_rating, y = total_points)) +
+  geom_point(color = "pink") +
+  labs(title = "Tournament Player Pre Rating vs Total Points",
+       x = "Pre Rating",
+       y = "Total Points")
+```
+This scatter plot alludes to a correlation between players that had higher pre ratings also having a higher amount of total points. However, this is not guaranteed as there are several clear deviations to this that seem to skew this trend.  
